@@ -1,0 +1,114 @@
+from models import Beacon, Vehicle, Spot
+from rest_framework import viewsets
+from serializers import BeaconSerializer, VehicleSerializer, SpotSerializer
+from rest_framework.decorators import list_route, detail_route
+from rest_framework.response import Response
+import json
+
+
+class BeaconViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows beacons to be viewed or edited.
+    """
+    queryset = Beacon.objects.all().order_by('-last_seen_timestamp')
+    serializer_class = BeaconSerializer
+
+
+class VehicleViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows vehicles to be viewed or edited.
+    """
+    queryset = Vehicle.objects.all()
+    serializer_class = VehicleSerializer
+
+    @list_route()
+    def live_vehicles(self, request):
+        """
+        Returns all live vehicles as response
+        """
+        live_vehicles = self.get_live_vehicles()
+        page = self.paginate_queryset(live_vehicles)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(live_vehicles, many=True)
+        return Response(serializer.data)
+
+    def get_live_vehicles(self):
+        """
+        Returns queryset containing all live vehicles
+        """
+        live_vehicles = Vehicle.objects.filter(is_live=True)
+        return live_vehicles
+
+
+class SpotViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows beacons to be viewed or edited.
+    """
+    queryset = Spot.objects.all().order_by('-spot_timestamp')
+    serializer_class = SpotSerializer
+
+    @detail_route(methods=['post'])
+    def spot_with_id(self, request):
+        """
+        Creates spot with beacon id
+        POST params - user, spot_timestamp, lat, lng, namespace_id, instance_id
+        """
+        request_dict = json.loads(request.body)[0]
+        try:
+            user = str(request_dict['user'])
+        except (KeyError, TypeError):
+            return return_bad_request('parameter user missing or incorrect')
+
+        try:
+            spot_timestamp = int(request_dict['spot_timestamp'])
+        except (KeyError, TypeError):
+            return return_bad_request('parameter user missing or incorrect')
+
+        try:
+            lat = float(request_dict['lat'])
+        except (KeyError, TypeError):
+            return return_bad_request('parameter lat missing or incorrect')
+
+        try:
+            lng = float(request_dict['lng'])
+        except (KeyError, TypeError):
+            return return_bad_request('parameter lng missing or incorrect')
+
+        try:
+            namespace_id = str(request_dict['namespace_id'])
+        except (KeyError, TypeError):
+            return return_bad_request('parameter namespace_id missing or incorrect')
+
+        try:
+            instance_id = str(request_dict['instance_id'])
+        except (KeyError, TypeError):
+            return return_bad_request('parameter instance_id missing or incorrect')
+
+        values = {
+            'user': user,
+            'spot_timestamp': spot_timestamp,
+            'lat': lat,
+            'lng': lng,
+        }
+        spot = Spot(**values)
+        spot.save(namespace_id=namespace_id, instance_id=instance_id)
+        return return_request_ok()
+
+
+def return_bad_request(message):
+    """
+    helper method for bad request response
+    """
+    res = {"code": 400, "message": "Bad Request: "+message}
+    return Response(data=json.dumps(res))
+
+
+def return_request_ok():
+    """
+    helper method for generic request ok response
+    """
+    res = {"code": 200, "message": "Request ok"}
+    return Response(data=json.dumps(res))

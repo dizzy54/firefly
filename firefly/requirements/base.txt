@@ -1,0 +1,4 @@
+django==1.9
+psycopg2==2.6.1
+djangorestframework==3.3.2
+unipath==1.1
