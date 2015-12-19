@@ -16,9 +16,9 @@ class VehicleSerializer(serializers.ModelSerializer):
     """
     Serializer for Vehicle model of track app
     """
-    beacon = serializers.StringRelatedField(
+    beacon = serializers.PrimaryKeyRelatedField(
         # view_name='beacon-detail',
-        # queryset=Beacon.objects.all(),
+        queryset=Beacon.objects.all(),
     )
 
     class Meta:
@@ -30,9 +30,9 @@ class SpotSerializer(serializers.ModelSerializer):
     """
     Serializer for Spot model of track app
     """
-    beacon = serializers.StringRelatedField(
+    beacon = serializers.PrimaryKeyRelatedField(
         # view_name='beacon-detail',
-        # queryset=Beacon.objects.all(),
+        queryset=Beacon.objects.all(),
     )
 
     class Meta:
