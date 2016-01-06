@@ -4,6 +4,7 @@ from serializers import BeaconSerializer, VehicleSerializer, SpotSerializer
 from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 import json
+# from rest_framework.permissions import AllowAny
 
 
 class BeaconViewSet(viewsets.ModelViewSet):
@@ -39,7 +40,7 @@ class VehicleViewSet(viewsets.ModelViewSet):
         """
         Returns queryset containing all live vehicles
         """
-        live_vehicles = Vehicle.objects.filter(is_live=True)
+        live_vehicles = Vehicle.objects.filter(beacon__is_live=True)
         return live_vehicles
 
 
@@ -51,7 +52,7 @@ class SpotViewSet(viewsets.ModelViewSet):
     serializer_class = SpotSerializer
 
     @detail_route(methods=['post'])
-    def spot_with_id(self, request):
+    def spot_with_id(self, request, pk=None):
         """
         Creates spot with beacon id
         POST params - user, spot_timestamp, lat, lng, namespace_id, instance_id
@@ -60,32 +61,32 @@ class SpotViewSet(viewsets.ModelViewSet):
         try:
             user = str(request_dict['user'])
         except (KeyError, TypeError):
-            return return_bad_request('parameter user missing or incorrect')
+            return return_bad_request('parameter user missing or incorrect', request_dict)
 
         try:
             spot_timestamp = int(request_dict['spot_timestamp'])
         except (KeyError, TypeError):
-            return return_bad_request('parameter user missing or incorrect')
+            return return_bad_request('parameter spot_timestamp missing or incorrect', request_dict)
 
         try:
             lat = float(request_dict['lat'])
         except (KeyError, TypeError):
-            return return_bad_request('parameter lat missing or incorrect')
+            return return_bad_request('parameter lat missing or incorrect', request_dict)
 
         try:
             lng = float(request_dict['lng'])
         except (KeyError, TypeError):
-            return return_bad_request('parameter lng missing or incorrect')
+            return return_bad_request('parameter lng missing or incorrect', request_dict)
 
         try:
             namespace_id = str(request_dict['namespace_id'])
         except (KeyError, TypeError):
-            return return_bad_request('parameter namespace_id missing or incorrect')
+            return return_bad_request('parameter namespace_id missing or incorrect', request_dict)
 
         try:
             instance_id = str(request_dict['instance_id'])
         except (KeyError, TypeError):
-            return return_bad_request('parameter instance_id missing or incorrect')
+            return return_bad_request('parameter instance_id missing or incorrect', request_dict)
 
         values = {
             'user': user,
@@ -98,17 +99,17 @@ class SpotViewSet(viewsets.ModelViewSet):
         return return_request_ok()
 
 
-def return_bad_request(message):
+def return_bad_request(message, request_dict=None):
     """
     helper method for bad request response
     """
-    res = {"code": 400, "message": "Bad Request: "+message}
-    return Response(data=json.dumps(res))
+    res = [{"code": 400, "message": "Bad Request: "+message, "request_dict": str(request_dict)}]
+    return Response(data=res)
 
 
 def return_request_ok():
     """
     helper method for generic request ok response
     """
-    res = {"code": 200, "message": "Request ok"}
-    return Response(data=json.dumps(res))
+    res = [{"code": 200, "message": "Request ok"}]
+    return Response(data=res)

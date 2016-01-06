@@ -14,6 +14,7 @@ class Beacon(models.Model):
     lat = models.FloatField('latitude')
     lng = models.FloatField('longitude')
     last_seen_timestamp = models.IntegerField('last seen timestamp')
+    is_live = models.BooleanField('true if beacon is live', default=False)
 
     class Meta:
         verbose_name = 'beacon'
@@ -35,7 +36,6 @@ class Beacon(models.Model):
         self.lat = lat
         self.lng = lng
         self.save()
-        self.vehicle._set_live()
 
 
 class Vehicle(models.Model):
@@ -43,8 +43,8 @@ class Vehicle(models.Model):
     model to store base vehicle objects
     """
     serial_number = models.IntegerField('serial number', primary_key=True)
-    is_beaconed = models.BooleanField('true if attached beacon confirmed')
-    is_live = models.BooleanField('true if vehicle is live')
+    # is_beaconed = models.BooleanField('true if attached beacon confirmed')
+    # is_live = models.BooleanField('true if vehicle is live')
     beacon = models.OneToOneField(Beacon, related_name='vehicle')
 
     class Meta:
@@ -53,14 +53,6 @@ class Vehicle(models.Model):
 
     def __str__(self):
         return str(self.serial_number)
-
-    def _set_live(self):
-        """
-        sets is_live = True,
-        saves object
-        """
-        self.is_live = True
-        self.save()
 
 
 class Spot(models.Model):
