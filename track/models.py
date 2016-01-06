@@ -15,6 +15,7 @@ class Beacon(models.Model):
     lng = models.FloatField('longitude')
     last_seen_timestamp = models.IntegerField('last seen timestamp')
     is_live = models.BooleanField('true if beacon is live', default=False)
+    registration_number = models.CharField('registration number associated with beacon', max_length=30, null=True)
 
     class Meta:
         verbose_name = 'beacon'

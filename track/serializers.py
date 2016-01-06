@@ -9,7 +9,9 @@ class BeaconSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = Beacon
-        fields = ('id', 'namespace_id', 'instance_id', 'lat', 'lng', 'is_live', 'last_seen_timestamp')
+        fields = (
+            'id', 'namespace_id', 'instance_id', 'lat', 'lng', 'is_live', 'last_seen_timestamp', 'registration_number'
+        )
 
 
 class VehicleSerializer(serializers.ModelSerializer):

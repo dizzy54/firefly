@@ -14,6 +14,39 @@ class BeaconViewSet(viewsets.ModelViewSet):
     queryset = Beacon.objects.all().order_by('-last_seen_timestamp')
     serializer_class = BeaconSerializer
 
+    @list_route()
+    def beacon_by_uuid(self, request):
+        """
+        Returns response with beacon object in db corresponding to uuid in request
+        """
+        try:
+            uuid = str(request.GET.get('uuid'))
+        except (TypeError, ValueError):
+            return return_bad_request('uuid parameter missing or incorrect')
+
+        beacon = self.get_beacon_by_uuid(uuid)
+
+        if beacon is not None:
+            serializer = self.get_serializer(beacon)
+            return Response(serializer.data)
+        else:
+            return return_bad_request('uuid not in database')
+
+    def get_beacon_by_uuid(self, uuid):
+        """
+        Returns beacon object in db corresponding to uuid
+        """
+        print uuid
+        namespace_id = '0x'+uuid[0:20]
+        instance_id = '0x'+uuid[20:]
+        print namespace_id
+        print instance_id
+        try:
+            beacon = Beacon.objects.get(namespace_id=namespace_id, instance_id=instance_id)
+        except Beacon.DoesNotExist:
+            beacon = None
+        return beacon
+
 
 class VehicleViewSet(viewsets.ModelViewSet):
     """
