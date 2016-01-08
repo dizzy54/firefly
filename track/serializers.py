@@ -10,7 +10,7 @@ class BeaconSerializer(serializers.ModelSerializer):
     class Meta:
         model = Beacon
         fields = (
-            'id', 'namespace_id', 'instance_id', 'lat', 'lng', 'is_live', 'last_seen_timestamp', 'registration_number'
+            'id', 'namespace_id', 'instance_id', 'lat', 'lng', 'is_live', 'last_seen_timestamp',
         )
 
 
@@ -26,7 +26,7 @@ class VehicleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vehicle
         depth = 1
-        fields = ('serial_number', 'beacon')
+        fields = ('serial_number', 'registration_number', 'route_name', 'beacon')
 
 
 class SpotSerializer(serializers.ModelSerializer):

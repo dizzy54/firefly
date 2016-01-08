@@ -15,7 +15,6 @@ class Beacon(models.Model):
     lng = models.FloatField('longitude')
     last_seen_timestamp = models.IntegerField('last seen timestamp')
     is_live = models.BooleanField('true if beacon is live', default=False)
-    registration_number = models.CharField('registration number associated with beacon', max_length=30, null=True)
 
     class Meta:
         verbose_name = 'beacon'
@@ -44,6 +43,8 @@ class Vehicle(models.Model):
     model to store base vehicle objects
     """
     serial_number = models.IntegerField('serial number', primary_key=True)
+    registration_number = models.CharField('registration number associated', max_length=30, null=True)
+    route_name = models.CharField('route name', max_length=20, null=True)
     # is_beaconed = models.BooleanField('true if attached beacon confirmed')
     # is_live = models.BooleanField('true if vehicle is live')
     beacon = models.OneToOneField(Beacon, related_name='vehicle')

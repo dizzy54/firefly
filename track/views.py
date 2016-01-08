@@ -76,6 +76,72 @@ class VehicleViewSet(viewsets.ModelViewSet):
         live_vehicles = Vehicle.objects.filter(beacon__is_live=True)
         return live_vehicles
 
+    @list_route()
+    def vehicle_by_uuid(self, request):
+        """
+        Returns registration_number of vehicle attached to beacon
+        """
+        try:
+            uuid = str(request.GET.get('uuid'))
+        except (TypeError, ValueError):
+            return return_bad_request('uuid parameter missing or incorrect')
+
+        vehicle = self.get_vehicle_by_uuid(uuid)
+
+        if vehicle is not None:
+            serializer = self.get_serializer(vehicle)
+            return Response(serializer.data)
+        else:
+            return return_bad_request('uuid not in database')
+
+    @detail_route(methods=['post'])
+    def set_route(self, request, pk=None):
+        """
+        sets route to vehicle based on request
+        """
+        request_dict = json.loads(request.body)[0]
+        try:
+            route_name = str(request_dict['route_name'])
+        except (KeyError, TypeError):
+            return return_bad_request('parameter route_name missing or incorrect', request_dict)
+
+        try:
+            registration_number = str(request_dict['registration_number'])
+        except (KeyError, TypeError):
+            return return_bad_request('parameter registration_number missing or incorrect', request_dict)
+        if self.set_route_from_registration_number(registration_number, route_name):
+            return return_request_ok()
+        else:
+            return return_bad_request()
+
+    def get_vehicle_by_uuid(self, uuid):
+        """
+        Returns beacon object in db corresponding to uuid
+        """
+        print uuid
+        namespace_id = '0x'+uuid[0:20]
+        instance_id = '0x'+uuid[20:]
+        print namespace_id
+        print instance_id
+        try:
+            beacon = Beacon.objects.get(namespace_id=namespace_id, instance_id=instance_id)
+            vehicle = beacon.vehicle
+        except Beacon.DoesNotExist:
+            vehicle = None
+        return vehicle
+
+    def set_route_from_registration_number(self, registration_number, route_name):
+        """
+        returns true if route set, else false
+        """
+        try:
+            vehicle = Vehicle.objects.get(registration_number=registration_number)
+        except (Vehicle.DoesNotExist):
+            return False
+        vehicle.route_name = route_name
+        vehicle.save()
+        return True
+
 
 class SpotViewSet(viewsets.ModelViewSet):
     """
@@ -132,7 +198,7 @@ class SpotViewSet(viewsets.ModelViewSet):
         return return_request_ok()
 
 
-def return_bad_request(message, request_dict=None):
+def return_bad_request(message='Bad request', request_dict=None):
     """
     helper method for bad request response
     """
